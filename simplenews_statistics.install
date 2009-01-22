@@ -65,8 +65,8 @@ function simplenews_statistics_schema() {
     ),
   );
 
-  $schema['simplenews_statistics_views'] = array(
-    'description' => t('Newsletter Views'),
+  $schema['simplenews_statistics_opens'] = array(
+    'description' => t('Newsletter Opens'),
     'fields' => array(
       'email' => array(
         'description' => t('Primary key: Email.'),
@@ -82,8 +82,8 @@ function simplenews_statistics_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'views' => array(
-        'description' => t('Amount of views'),
+      'opens' => array(
+        'description' => t('Amount of opens'),
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,

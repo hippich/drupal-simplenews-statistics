@@ -12,6 +12,7 @@
 function simplenews_statistics_menu() {
   $items['admin/content/simplenews/statistics'] = array(
     'title' => 'Statistics',
+    'description' => 'View the openings/rate and clicks/CTR for your newsletters',
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('simplenews_statistics_admin_form'),
@@ -21,11 +22,11 @@ function simplenews_statistics_menu() {
     'title' => 'Statistics Details',
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('simplenews_statistics_admin_views', 4),
+    'page arguments' => array('simplenews_statistics_admin_opens', 4),
     'access arguments' => array('administer newsletters'),
   );
-  $items['admin/content/simplenews/statistics/%/views'] = array(
-    'title' => 'Newsletter views',
+  $items['admin/content/simplenews/statistics/%/opens'] = array(
+    'title' => 'Newsletter opens',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
@@ -52,15 +53,15 @@ function simplenews_statistics_menu() {
 /**
  * simplenews_statistics_view.
  *
- * Gathers the views/opens
+ * Gathers the opens
  */
 function simplenews_statistics_view() {
   if ($_GET['mail'] && $_GET['nid']) {
-    if ( !db_fetch_array(db_query("SELECT * FROM {simplenews_statistics_views} WHERE email = '%s' AND nid = %d", $_GET['mail'], $_GET['nid']))) {
-      db_query("INSERT INTO {simplenews_statistics_views} (email, nid, views, timestamp) VALUES ('%s', %d, %d, %d)", $_GET['mail'], $_GET['nid'], 1, time());
+    if ( !db_fetch_array(db_query("SELECT * FROM {simplenews_statistics_opens} WHERE email = '%s' AND nid = %d", $_GET['mail'], $_GET['nid']))) {
+      db_query("INSERT INTO {simplenews_statistics_opens} (email, nid, opens, timestamp) VALUES ('%s', %d, %d, %d)", $_GET['mail'], $_GET['nid'], 1, time());
     }
     else {
-      db_query("UPDATE {simplenews_statistics_views} SET views = views+1 WHERE email = '%s' AND nid = %d", $_GET['mail'], $_GET['nid']);
+      db_query("UPDATE {simplenews_statistics_opens} SET opens = opens+1 WHERE email = '%s' AND nid = %d", $_GET['mail'], $_GET['nid']);
     }
   }
 }
@@ -123,9 +124,19 @@ function simplenews_statistics_mail_alter(&$message) {
 function simplenews_statistics_help($path, $arg) {
   switch ($path) {
     case 'admin/help#simplenews_statistics':
-      $help = '<p>'. t('Simplenews  statistics gathers the views and click-throughs of a send newsletter.') ."<br />\n";
-      $help .= t("Permission 'administer simplenews settings' is used. No additional permissions are required.") ."</p>\n";
+      $help = '<p>'. t('Simplenews Statistics gathers the open rate and CTR of a send newsletter.') ."<br />\n";
+			$help .= t("Open Rate is the number of people who open a newsletter divided by the amount of subscriptions.") ."<br />\n";
+			$help .= t("CTR (click-through rate) is the number of people who clicked a link in a newsletter divided by the amount of subscriptions") ."</p>\n";
       return $help;
+		case 'admin/content/simplenews/statistics':
+      $help = '<p>'. t('Shows the open rate and CTR for your newsletters.') ."<p>\n";
+      return $help;
+		case 'admin/content/simplenews/statistics/%':
+			$help = '<p>'. t('Shows who and how many times the newsletter has been openend.') ."<p>\n";
+			return $help;
+		case 'admin/content/simplenews/statistics/%/clicks':
+			$help = '<p>'. t('Listing of all clicks for the newsletter.') ."<p>\n";
+			return $help;
   }
 }
 
@@ -133,10 +144,11 @@ function simplenews_statistics_help($path, $arg) {
  * Statistics overview
  */
 function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
+	drupal_set_title('Newsletter Statistics');
   $vid = variable_get('simplenews_vid', '');
   $form = array();
 
-  $header = array(t('Title'), t('Newsletter'), t('Date created'), t('Mailing Size'), t('Views'), t('View Ratio'), array('data' => t('Clicks')), t(''));
+  $header = array(t('Title'), t('Newsletter'), t('Date created'), t('Send'), t('Open rate'), t('CTR'), t('Details'));
   $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_status > 1 AND s.s_format = 'html' ORDER BY n.created DESC";
   $result = db_query(db_rewrite_sql($sql));
 
@@ -146,10 +158,10 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
     $terms = array_keys(taxonomy_node_get_terms_by_vocabulary($node, $vid, 'name'));
     $send = db_fetch_object(db_query("SELECT * FROM {simplenews_statistics} WHERE nid = %d", $node->nid));
     $data = db_fetch_object(db_query("SELECT 
-																		 	  COUNT(v.nid) AS views, 
-																			  COUNT(c.nid) AS clicks
+																		 	  COUNT(v.nid) AS opens, 
+																				COUNT(DISTINCT c.email) AS clicks
 																			FROM 
-																			  {simplenews_statistics_views} v 
+																			  {simplenews_statistics_opens} v 
 																			LEFT JOIN 
 																			  {simplenews_statistics_clicks} c 
 																			ON 
@@ -161,9 +173,8 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
                     isset($terms[0]) ? $terms[0] : t('n/a'),
                     format_date($node->created, 'small'),
                     ($send) ? $send->send : t('No data available.'),
-                    ($send) ? $data->views : '',
-                    ($send) ? $data->views/$send->send*100 .' %' : '',
-                    ($send) ? $data->clicks : '',
+                    ($send) ? $data->opens .' ('. $data->opens/$send->send*100 .'%)' : '',
+                    ($send) ? $data->clicks .' ('. $data->clicks/$send->send*100 .'%)' : '',
                     ($send) ? l('Details', 'admin/content/simplenews/statistics/'. $node->nid) : '');
   }
   if (!$rows) {
@@ -176,23 +187,25 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
 }
 
 /**
- * Newsletter views overview
+ * Newsletter opens overview
  */
-function simplenews_statistics_admin_views(&$form_state, $nid = NULL) {
+function simplenews_statistics_admin_opens(&$form_state, $nid = NULL) {
   $node = node_load($nid);
   drupal_set_title(check_plain($node->title) .' Statistics');
 	$form = array();
 
-  $header = array(array('data' => t('Email'), 'field' => 'email', 'sort' => 'desc'), 
-                  array('data' => t('Date'), 'field' => 'timestamp', 'sort' => 'desc'));
+  $header = array(array('data' => t('Email'), 'field' => 'email'), 
+                  array('data' => t('Last open'), 'field' => 'timestamp', 'sort' => 'desc'),
+									array('data' => t('Open(s)'), 'field' => 'opens'));
                   
-  $sql = "SELECT * FROM {simplenews_statistics_views} WHERE nid = %d". tablesort_sql($header);
+  $sql = "SELECT * FROM {simplenews_statistics_opens} WHERE nid = %d". tablesort_sql($header);
   $result = pager_query($sql, 50, 0, NULL, $nid);
 
   $rows = array();
   while ($view = db_fetch_object($result)) {
     $rows[] = array($view->email,
-                    format_date($view->timestamp, 'small'));
+                    format_date($view->timestamp, 'small'),
+										$view->opens);
   }
   if (!$rows) {
     $rows[] = array(array('data' => t('No statistics available.'), 'colspan' => '2'));
