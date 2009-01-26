@@ -87,7 +87,7 @@ function simplenews_statistics_click() {
  *  Mail message array.
  */
 function simplenews_statistics_mail_alter(&$message) { 
-  if (strpos($message['id'], 'simplenews') !== FALSE && $message['params']['context']['node']->simplenews['s_format']=='html') {
+  if ($message['id'] == 'simplenews_node' && $message['params']['context']['node']->simplenews['s_format']=='html') {
       global $base_url;
       $body      = $message['body']['body'];
       $nid      = $message['params']['context']['node']->nid;
@@ -239,7 +239,7 @@ function simplenews_statistics_admin_clicks(&$form_state, $nid = NULL) {
                     format_date($view->timestamp, 'small'));
   }
   if (!$rows) {
-    $rows[] = array(array('data' => t('No statistics available.'), 'colspan' => '2'));
+    $rows[] = array(array('data' => t('No statistics available.'), 'colspan' => '3'));
   }
 
   $table = theme('table', $header, $rows);
