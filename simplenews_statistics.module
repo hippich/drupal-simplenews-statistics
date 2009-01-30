@@ -158,15 +158,15 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
     $terms = array_keys(taxonomy_node_get_terms_by_vocabulary($node, $vid, 'name'));
     $send = db_fetch_object(db_query("SELECT * FROM {simplenews_statistics} WHERE nid = %d", $node->nid));
     $data = db_fetch_object(db_query("SELECT 
-																		 	  COUNT(v.nid) AS opens, 
+																		 	  COUNT(DISTINCT v.email) AS opens,
 																				COUNT(DISTINCT c.email) AS clicks
-																			FROM 
-																			  {simplenews_statistics_opens} v 
-																			LEFT JOIN 
-																			  {simplenews_statistics_clicks} c 
-																			ON 
-																			  v.nid = c.nid 
-																			WHERE 
+																			FROM
+																			  {simplenews_statistics_opens} v
+																			LEFT JOIN
+																			  {simplenews_statistics_clicks} c
+																			ON
+																			  v.nid = c.nid
+																			WHERE
 																			  v.nid = %d", $node->nid));
 
     $rows[] = array(l($node->title, 'node/'. $node->nid),
