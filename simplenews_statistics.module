@@ -157,7 +157,7 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
     $node = node_load($row->nid);
     $terms = array_keys(taxonomy_node_get_terms_by_vocabulary($node, $vid, 'name'));
     $send = db_fetch_object(db_query("SELECT * FROM {simplenews_statistics} WHERE nid = %d", $node->nid));
-    $data = db_fetch_object(db_query("SELECT 
+    $data = db_fetch_object(db_query("SELECT
 																		 	  COUNT(DISTINCT v.email) AS opens,
 																				COUNT(DISTINCT c.email) AS clicks
 																			FROM
