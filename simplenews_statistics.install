@@ -116,3 +116,30 @@ function simplenews_statistics_install() {
 function simplenews_statistics_uninstall() {
   drupal_uninstall_schema('simplenews_statistics');
 }
+
+/**
+ * #6001: 6.x-1.1 upgrade.
+ * - Change nid columns to INT
+ */
+function simplenews_statistics_update_6001() {
+	$ret = array();
+  db_change_field($ret, 'simplenews_statistics', 'nid', 'nid', array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+    )
+  );
+	db_change_field($ret, 'simplenews_statistics_clicks', 'nid', 'nid', array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+    )
+  );
+	db_change_field($ret, 'simplenews_statistics_opens', 'nid', 'nid', array(
+		'type' => 'int',
+		'not null' => TRUE,
+		'default' => 0,
+    )
+  );
+	return $ret;
+}
