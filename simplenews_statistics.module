@@ -173,8 +173,8 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
                     isset($terms[0]) ? $terms[0] : t('n/a'),
                     format_date($node->created, 'small'),
                     ($send) ? $send->send : t('No data available.'),
-                    ($send) ? $data->opens .' ('. $data->opens/$send->send*100 .'%)' : '',
-                    ($send) ? $data->clicks .' ('. $data->clicks/$send->send*100 .'%)' : '',
+                    ($send) ? $data->opens .' ('. round($data->opens/$send->send*100) .'%)' : '',
+                    ($send) ? $data->clicks .' ('. round($data->clicks/$send->send*100) .'%)' : '',
                     ($send) ? l('Details', 'admin/content/simplenews/statistics/'. $node->nid) : '');
   }
   if (!$rows) {
