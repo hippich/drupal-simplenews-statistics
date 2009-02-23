@@ -15,10 +15,9 @@ function simplenews_statistics_schema() {
     'fields' => array(
       'nid' => array(
         'description' => t('Node ID.'),
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
+			  'type' => 'int',
+			  'not null' => TRUE,
+			  'default' => 0,
       ),
       'send' => array(
         'description' => t('Send emails'),
@@ -43,10 +42,9 @@ function simplenews_statistics_schema() {
       ),
       'nid' => array(
         'description' => t('Node ID.'),
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
+			  'type' => 'int',
+			  'not null' => TRUE,
+			  'default' => 0,
       ),
       'url' => array(
         'description' => t('The clicked URL.'),
@@ -77,10 +75,9 @@ function simplenews_statistics_schema() {
       ),
       'nid' => array(
         'description' => t('Node ID.'),
-        'type' => 'int',
-        'size' => 'tiny',
-        'not null' => TRUE,
-        'default' => 0,
+			  'type' => 'int',
+			  'not null' => TRUE,
+			  'default' => 0,
       ),
       'opens' => array(
         'description' => t('Amount of opens'),
