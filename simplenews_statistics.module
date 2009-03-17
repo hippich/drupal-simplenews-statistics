@@ -73,9 +73,10 @@ function simplenews_statistics_view() {
  */
 function simplenews_statistics_click() {
   if ($_GET['mail'] && $_GET['nid'] && $_GET['url']) {
-    db_query("INSERT INTO {simplenews_statistics_clicks} (email, nid, url, timestamp) VALUES ('%s', %d, '%s', %d)", $_GET['mail'], $_GET['nid'], $_GET['url'], time());
+    db_query("INSERT INTO {simplenews_statistics_clicks} (email, nid, url, timestamp) VALUES ('%s', %d, '%s', %d)", 
+						$_GET['mail'], $_GET['nid'], urldecode($_GET['url']), time());
   }
-  drupal_goto($_GET['url']);
+  drupal_goto(urldecode($_GET['url']));
 }
 
 /**
@@ -92,17 +93,18 @@ function simplenews_statistics_mail_alter(&$message) {
       $body      = $message['body']['body'];
       $nid      = $message['params']['context']['node']->nid;
       $account  = $message['params']['context']['account'];
-  
-      // replace links      
-      $body = stripslashes($body);
-      $body = ereg_replace("(href=\")([[:alpha:]]+://[^<>[:space:]]+[[:alnum:]/])(\")",
-                       'href="'. $base_url .'?q=/simplenews/statistics/click&nid='. $nid .'&mail='. $account->mail .'&url=\\2"', $body);
+			
+      //expand all local links using mimemail _mimemail_url function
+			require_once drupal_get_path('module', 'mimemail') .'/mimemail.inc';
+      $pattern = '/(<a[^>]+href=")([^"]*)/emi';
+		  $body = preg_replace($pattern, '"\\1"._mimemail_url("\2")', $body);
+
+      // replace links   
+      $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2",$nid,$account->mail)', $body);
       
       // add hidden image
-      $url = url(
-        'simplenews/statistics/view', 
-        array('absolute' => TRUE, 'query' => array('nid' => $nid, 'mail' => $account->mail))
-      );
+      $url = url('simplenews/statistics/view', 
+                 array('absolute' => TRUE, 'query' => array('nid' => $nid, 'mail' => $account->mail)));
       $body .= '<img src="'. $url .'" width="1" height="1">';
       
       // count
@@ -116,6 +118,14 @@ function simplenews_statistics_mail_alter(&$message) {
       // set new body
       $message['body']['body'] = $body;
   }
+}
+
+/**
+ * Alter link to go through statistics
+ *
+ */
+function _simplenews_statistics_replace_url($match, $nid, $mail) {
+  return url('simplenews/statistics/click', array('absolute' => TRUE, 'query'=> array('nid'=>$nid,'mail'=>$mail,'url'=>$match)));
 }
 
 /**
