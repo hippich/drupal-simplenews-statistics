@@ -291,12 +291,13 @@ function _simplenews_statistics_decode($values) {
       parse_str($pars, $stat);
     }
   }
-  
+  /*
   if (!isset($stat['mail'])) {
     $stat['mail'] = check_plain($values['mail']);
     $stat['nid']  = check_plain($values['nid']);
     $stat['url']  = check_plain($values['url']);
   }
+	*/
   
   return $stat;
 }
