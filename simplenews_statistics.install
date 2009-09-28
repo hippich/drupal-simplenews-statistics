@@ -1,5 +1,5 @@
 <?php
-// $Id:
+// $Id$
 
 /**
  * @file
@@ -37,7 +37,6 @@ function simplenews_statistics_schema() {
         'description' => t('Primary key: Email.'),
         'type' => 'varchar',
         'not null' => TRUE,
-        'default' => 0,
         'length' => 255,
       ),
       'nid' => array(
@@ -50,7 +49,6 @@ function simplenews_statistics_schema() {
         'description' => t('The clicked URL.'),
         'type' => 'varchar',
         'not null' => TRUE,
-        'default' => 0,
         'length' => 255,
       ),
       'timestamp' => array(
@@ -70,7 +68,6 @@ function simplenews_statistics_schema() {
         'description' => t('Primary key: Email.'),
         'type' => 'varchar',
         'not null' => TRUE,
-        'default' => 0,
         'length' => 255,
       ),
       'nid' => array(
@@ -119,24 +116,24 @@ function simplenews_statistics_uninstall() {
  * - Change nid columns to INT
  */
 function simplenews_statistics_update_6001() {
-	$ret = array();
+  $ret = array();
   db_change_field($ret, 'simplenews_statistics', 'nid', 'nid', array(
-		'type' => 'int',
-		'not null' => TRUE,
-		'default' => 0,
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
     )
   );
-	db_change_field($ret, 'simplenews_statistics_clicks', 'nid', 'nid', array(
-		'type' => 'int',
-		'not null' => TRUE,
-		'default' => 0,
+  db_change_field($ret, 'simplenews_statistics_clicks', 'nid', 'nid', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
     )
   );
-	db_change_field($ret, 'simplenews_statistics_opens', 'nid', 'nid', array(
-		'type' => 'int',
-		'not null' => TRUE,
-		'default' => 0,
+  db_change_field($ret, 'simplenews_statistics_opens', 'nid', 'nid', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
     )
   );
-	return $ret;
+  return $ret;
 }
