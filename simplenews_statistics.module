@@ -127,28 +127,10 @@ function simplenews_statistics_mail_alter(&$message) {
       global $base_url;
       require_once drupal_get_path('module', 'simplenews_statistics') .'/rc4.inc';
       
-      $body     = $message['body']['body'];
       $nid      = $message['params']['context']['node']->nid;
       $account  = $message['params']['context']['account'];
       
-      // R to A
-      $body = preg_replace(
-        '/(src|href)=(\'|")\//',
-        '$1=$2'. url('<front>', array('absolute' => TRUE)),
-        $body
-      );
-
-      // Replace links   
-      $pattern = '/(<a[^>]+href=")([^"]*)/emi';
-      $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2", $nid, $account->mail)', $body);
-      
-      // Add hidden image
-      $pars = 'nid='. $nid .'&mail='. $account->mail;
-      $pars = rc4Encrypt(simplenews_private_key(), $pars);
-      $pars_hash = md5($pars);
-      $url = url('simplenews/statistics/view', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 
-                                                                                          'h' => _simplenews_statistics_encode_parameter($pars_hash))));
-      $body .= '<img src="'. $url .'" width="1" height="1">';
+      _simplenews_analytics_parse_body($message['body']);
       
       // Count
       if ( !db_fetch_array(db_query("SELECT * FROM {simplenews_statistics} WHERE nid = %d", $nid)) ) {
@@ -157,9 +139,36 @@ function simplenews_statistics_mail_alter(&$message) {
       else {
         db_query("UPDATE {simplenews_statistics} SET send = send+1 WHERE nid = %d", $nid);
       }
-      
-      // Set new body
-      $message['body']['body'] = $body;
+  }
+}
+
+/*
+ * Add image and parse links in the body
+ */
+function _simplenews_statistics_parse_body(&$body) {
+  if (is_array($body)) {
+    foreach ($body as $key => $element) {
+      _simplenews_statistics_parse_body($body[$key]);
+    }
+  }else{  
+    // R to A
+    $body = preg_replace(
+      '/(src|href)=(\'|")\//',
+      '$1=$2'. url('<front>', array('absolute' => TRUE)),
+      $body
+    );
+    
+    // Replace links   
+    $pattern = '/(<a[^>]+href=")([^"]*)/emi';
+    $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2", $nid, $account->mail)', $body);
+    
+    // Add hidden image
+    $pars = 'nid='. $nid .'&mail='. $account->mail;
+    $pars = rc4Encrypt(simplenews_private_key(), $pars);
+    $pars_hash = md5($pars);
+    $url = url('simplenews/statistics/view', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 
+                                                                                        'h' => _simplenews_statistics_encode_parameter($pars_hash))));
+    $body .= '<img src="'. $url .'" width="1" height="1">';
   }
 }
 
@@ -172,7 +181,7 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
   $form = array();
 
   $header = array(t('Title'), t('Newsletter'), t('Date created'), t('Send'), t('Open rate'), t('CTR'), t('Details'));
-  $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_status > 1 AND s.s_format = 'html' ORDER BY n.created DESC";
+  $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_status >= 1 AND s.s_format = 'html' ORDER BY n.created DESC";
   $result = db_query(db_rewrite_sql($sql));
 
   $rows = array();
