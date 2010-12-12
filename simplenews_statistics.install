@@ -20,7 +20,21 @@ function simplenews_statistics_schema() {
         'default' => 0,
       ),
       'send' => array(
-        'description' => t('Send emails'),
+        'description' => t('Send emails for this newsletter'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'clicks' => array(
+        'description' => t('Total clicks for this newsletter'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'opens' => array(
+        'description' => t('Total opens for this newsletter'),
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -135,5 +149,29 @@ function simplenews_statistics_update_6001() {
     'default' => 0,
     )
   );
+  return $ret;
+}
+
+/*
+ * Update to 3.x
+ */
+function simplenews_statistics_update_6300() {
+  $ret = array();
+  
+  db_add_field($ret, 'simplenews_statistics', 'clicks', array(
+        'description' => t('Total clicks for this newsletter'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ));
+  db_add_field($ret, 'simplenews_statistics', 'opens', array(
+        'description' => t('Total opens for this newsletter'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ));
+
   return $ret;
 }

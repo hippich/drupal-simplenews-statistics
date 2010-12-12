@@ -81,6 +81,9 @@ function simplenews_statistics_view() {
   $stat = _simplenews_statistics_decode($_GET);
   
   if ($stat['mail'] && $stat['nid']) {
+    // Update total
+    _simplenews_statistics_open_add($stat['nid']);
+    
     if ( !db_fetch_array(db_query("SELECT * FROM {simplenews_statistics_opens} WHERE email = '%s' AND nid = %d", $stat['mail'], $stat['nid']))) {
       db_query("INSERT INTO {simplenews_statistics_opens} (email, nid, opens, timestamp) VALUES ('%s', %d, %d, %d)", $stat['mail'], $stat['nid'], 1, time());
     }
@@ -99,6 +102,9 @@ function simplenews_statistics_click() {
   $stat = _simplenews_statistics_decode($_GET);
 
   if ($stat['mail'] && $stat['nid'] && $stat['url']) {
+    // Update total
+    _simplenews_statistics_click_add($stat['nid']);
+    
     db_query("INSERT INTO {simplenews_statistics_clicks} (email, nid, url, timestamp) VALUES ('%s', %d, '%s', %d)", 
             $stat['mail'], $stat['nid'], urldecode($stat['url']), time());
     
@@ -121,19 +127,22 @@ function simplenews_statistics_mail_alter(&$message) {
       global $base_url;
       require_once drupal_get_path('module', 'simplenews_statistics') .'/rc4.inc';
       
-      $body      = $message['body']['body'];
+      $body     = $message['body']['body'];
       $nid      = $message['params']['context']['node']->nid;
       $account  = $message['params']['context']['account'];
       
-      //expand all local links using mimemail _mimemail_url function
-      require_once drupal_get_path('module', 'mimemail') .'/mimemail.inc';
-      $pattern = '/(<a[^>]+href=")([^"]*)/emi';
-      $body = preg_replace($pattern, '"\\1"._mimemail_url("\2")', $body);
+      // R to A
+      $body = preg_replace(
+        '/(src|href)=(\'|")\//',
+        '$1=$2'. url('<front>', array('absolute' => TRUE)),
+        $body
+      );
 
-      // replace links   
-      $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2",$nid,$account->mail)', $body);
+      // Replace links   
+      $pattern = '/(<a[^>]+href=")([^"]*)/emi';
+      $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2", $nid, $account->mail)', $body);
       
-      // add hidden image
+      // Add hidden image
       $pars = 'nid='. $nid .'&mail='. $account->mail;
       $pars = rc4Encrypt(simplenews_private_key(), $pars);
       $pars_hash = md5($pars);
@@ -141,7 +150,7 @@ function simplenews_statistics_mail_alter(&$message) {
                                                                                           'h' => _simplenews_statistics_encode_parameter($pars_hash))));
       $body .= '<img src="'. $url .'" width="1" height="1">';
       
-      // count
+      // Count
       if ( !db_fetch_array(db_query("SELECT * FROM {simplenews_statistics} WHERE nid = %d", $nid)) ) {
         db_query("INSERT INTO {simplenews_statistics} (nid, send) VALUES (%d, %d)", $nid, 1);
       }
@@ -149,7 +158,7 @@ function simplenews_statistics_mail_alter(&$message) {
         db_query("UPDATE {simplenews_statistics} SET send = send+1 WHERE nid = %d", $nid);
       }
       
-      // set new body
+      // Set new body
       $message['body']['body'] = $body;
   }
 }
@@ -308,4 +317,28 @@ function _simplenews_statistics_encode_parameter($par) {
 
 function _simplenews_statistics_decode_parameter($par) {
   return unserialize(gzuncompress(stripslashes(base64_decode(strtr($par, '-_,', '+/=')))));
+}
+
+/*
+ * Add click to total
+ */
+function _simplenews_statistics_click_add($nid) {
+  db_query("UPDATE {simplenews_statistics} SET clicks = clicks+1 WHERE nid = %d", $nid);
+}
+
+/*
+ * Add open to total
+ */
+function _simplenews_statistics_open_add($nid) {
+  db_query("UPDATE {simplenews_statistics} SET clicks = clicks+1 WHERE nid = %d", $nid);
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function simplenews_statistics_views_api() {
+  return array(
+    'api' => '2.0',
+    'path' => drupal_get_path('module', 'simplenews_statistics') .'/views',
+  );
 }
