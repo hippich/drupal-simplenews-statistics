@@ -368,7 +368,7 @@ function _simplenews_statistics_click_add($nid) {
  * Add open to total
  */
 function _simplenews_statistics_open_add($nid) {
-  db_query("UPDATE {simplenews_statistics} SET clicks = clicks+1 WHERE nid = %d", $nid);
+  db_query("UPDATE {simplenews_statistics} SET opens = opens+1 WHERE nid = %d", $nid);
 }
 
 /**
