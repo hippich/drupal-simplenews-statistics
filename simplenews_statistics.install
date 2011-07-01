@@ -177,3 +177,35 @@ function simplenews_statistics_update_6300() {
 
   return $ret;
 }
+
+function simplenews_statistics_update_6301() {
+  // Count the total clicks for each newsletter and update the column
+  $sql = 'select nid from {simplenews_statistics}';
+  $result = db_query($sql);
+  while ($newsletter = db_fetch_array($result))
+  {
+    $sql = 'select count(nid) as total from {simplenews_statistics_clicks} where nid=%d';
+    $result_clicks = db_query($sql, $newsletter['nid']);
+    if ($count = db_fetch_array($result_clicks))
+    {
+      $sql = 'update {simplenews_statistics} set clicks=%d where nid=%d';
+      db_query($sql, $count['total'], $newsletter['nid']);
+    }
+  }
+
+  // Count and sum the total opens for each newsletter and update the column
+  $sql = 'select nid from {simplenews_statistics}';
+  $result = db_query($sql);
+  while ($newsletter = db_fetch_array($result))
+  {
+    $sql = 'select sum(opens) as total from {simplenews_statistics_opens} where nid=%d';
+    $result_clicks = db_query($sql, $newsletter['nid']);
+    if ($count = db_fetch_array($result_clicks))
+    {
+      $sql = 'update {simplenews_statistics} set opens=%d where nid=%d';
+      db_query($sql, $count['total'], $newsletter['nid']);
+    }
+  }
+
+  return array();
+}
