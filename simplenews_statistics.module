@@ -15,38 +15,76 @@ function simplenews_statistics_menu() {
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('simplenews_statistics_admin_form'),
-    'access arguments' => array('administer newsletters'),
+    'access callback' => 'simplenews_statistics_access',
   );
-  $items['admin/content/simplenews/statistics/%'] = array(
+  $items['admin/content/simplenews/statistics/%node'] = array(
     'title' => 'Statistics Details',
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('simplenews_statistics_admin_opens', 4),
-    'access arguments' => array('administer newsletters'),
+    'access callback' => 'simplenews_statistics_access',
+    'access arguments' => array(4),
   );
-  $items['admin/content/simplenews/statistics/%/opens'] = array(
+  $items['admin/content/simplenews/statistics/%node/opens'] = array(
     'title' => 'Newsletter opens',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['admin/content/simplenews/statistics/%/clicks'] = array(
+  $items['admin/content/simplenews/statistics/%node/clicks'] = array(
     'title' => 'Newsletter clicks',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('simplenews_statistics_admin_clicks', 4),
-    'access arguments' => array('administer newsletters'),
+    'access callback' => 'simplenews_statistics_access',
+    'access arguments' => array(4),
   );
   $items['simplenews/statistics/view'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => 'simplenews_statistics_view',
-    'access arguments' => array('access content'),
+    'access callback' => 'simplenews_statistics_access',
   );
   $items['simplenews/statistics/click'] = array(
     'type' => MENU_CALLBACK,
     'page callback' => 'simplenews_statistics_click',
-    'access arguments' => array('access content'),
+    'access callback' => 'simplenews_statistics_access',
   );
   return $items;
+}
+
+/**
+ * Implementation of hook_perm
+ */
+function simplenews_statistics_perm() {
+  $perms = array(
+    'view all newsletters statistics',
+    'view own newsletters statistics',
+  );
+  return $perms;
+}
+
+/**
+ * Access for newsletter statistics.
+ */
+function simplenews_statistics_access(&$node = NULL) {
+  // If the user has the global permission, allow access
+  if (user_access('view all newsletters statistics')) {
+    return TRUE;
+  }
+
+  // If the user can only views stats for own nodes, check the $node->uid
+  // If the node object is empty, we need te allow access.
+  global $user;
+  if (user_access('view own newsletters statistics')) {
+    if (!empty($node)) {
+      if ($node->uid == $user->uid) {
+        return TRUE;
+      }
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -210,8 +248,17 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
   $form = array();
 
   $header = array(t('Title'), t('Newsletter'), t('Date created'), t('Send'), t('Open rate'), t('CTR'), t('Details'));
-  $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_format = 'html' ORDER BY n.created DESC";
-  $result = db_query(db_rewrite_sql($sql));
+
+  // Make sure that the user only sees nodes that he's actually allowed to see statistis for
+  if (user_access('view all newsletters statistics')) {
+    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_format = 'html' ORDER BY n.created DESC";
+    $result = db_query(db_rewrite_sql($sql));
+  }
+  else {
+    global $user;
+    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE n.uid=%d s.s_format = 'html' ORDER BY n.created DESC";
+    $result = db_query(db_rewrite_sql($sql, $user->uid));
+  }
 
   $rows = array();
   while ($row = db_fetch_object($result)) {
