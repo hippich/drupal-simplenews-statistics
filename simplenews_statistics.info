@@ -1,6 +1,7 @@
 ; $Id:
 name = "Simplenews Statistics"
 description = "Gathers newsletter statistics"
+dependencies[] = shorturl
 dependencies[] = simplenews
 dependencies[] = views
 package = Mail

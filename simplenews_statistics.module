@@ -317,8 +317,11 @@ function _simplenews_statistics_replace_url($match, $nid, $mail) {
   $pars = rc4Encrypt(simplenews_private_key(), $pars);
   $pars_hash = md5($pars);
   
-  return url('simplenews/statistics/click', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 
-                                                                                       'h' => _simplenews_statistics_encode_parameter($pars_hash))));
+  $simplenews_statistics_internal_url = url('simplenews/statistics/click', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 'h' => _simplenews_statistics_encode_parameter($pars_hash))));
+  // Use the "full-url"-option to get an absolute URL
+  $shortened_url = shorturl_shorten($simplenews_statistics_internal_url, TRUE);
+
+  return $shortened_url;
 }
 
  /**
