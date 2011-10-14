@@ -252,12 +252,12 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
 
   // Make sure that the user only sees nodes that he's actually allowed to see statistis for
   if (user_access('view all newsletters statistics')) {
-    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_format = 'html' ORDER BY n.created DESC";
+    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid ORDER BY n.created DESC";
     $result = db_query(db_rewrite_sql($sql));
   }
   else {
     global $user;
-    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE n.uid=%d s.s_format = 'html' ORDER BY n.created DESC";
+    $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE n.uid=%d ORDER BY n.created DESC";
     $result = db_query(db_rewrite_sql($sql, $user->uid));
   }
 
