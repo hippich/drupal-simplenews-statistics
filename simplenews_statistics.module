@@ -232,10 +232,11 @@ function _simplenews_statistics_image_tag(&$body, $nid, $mail) {
     $pars = 'nid='. check_plain($nid) .'&mail='. check_plain($mail);
     $pars = rc4Encrypt(simplenews_private_key(), $pars);
     $pars_hash = md5($pars);
-    $url = url('simplenews/statistics/view', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 
-                                                                                        'h' => _simplenews_statistics_encode_parameter($pars_hash))));
-    
-    $body .= '<img src="'. $url .'" width="1" height="1">';
+    $simplenews_statistics_internal_url = url('simplenews/statistics/view', array('absolute' => TRUE, 'query' => array('p' => _simplenews_statistics_encode_parameter($pars), 'h' => _simplenews_statistics_encode_parameter($pars_hash))));
+    // Use the "full-url"-option to get an absolute URL
+    $shortened_url = shorturl_shorten($simplenews_statistics_internal_url, TRUE);
+
+    $body .= '<img src="'.$shortened_url.'" width="1" height="1">';
   }
 }
 
