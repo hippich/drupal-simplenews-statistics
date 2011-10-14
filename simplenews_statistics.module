@@ -137,9 +137,6 @@ function simplenews_statistics_view() {
  */
 function simplenews_statistics_click() {
   $stat = _simplenews_statistics_decode($_GET);
-  
-  //print_r($stat);
-  //exit;
 
   if ($stat['mail'] && $stat['nid'] && $stat['url']) {
     // Update total
@@ -162,8 +159,8 @@ function simplenews_statistics_click() {
  * @param $message
  *  Mail message array.
  */
-function simplenews_statistics_mail_alter(&$message) { 
-  if ($message['id'] == 'simplenews_node' && $message['params']['context']['node']->simplenews['s_format']=='html') {
+function simplenews_statistics_mail_alter(&$message) {
+  if ($message['id'] == 'simplenews_node' && $message['params']['context']['node']->simplenews['s_format'] == 'html') {
       $nid   = $message['params']['context']['node']->nid;
       $mail  = $message['params']['context']['account']->mail;
     
@@ -191,7 +188,8 @@ function _simplenews_statistics_absolute(&$body) {
     foreach ($body as $key => $element) {
       _simplenews_statistics_absolute($body[$key]);
     }
-  }else{  
+  }
+  else {
     // R to A
     $body = preg_replace(
       '/(src|href)=(\'|")\//',
@@ -209,7 +207,8 @@ function _simplenews_statistics_parse_links(&$body, $nid, $mail) {
     foreach ($body as $key => $element) {
       _simplenews_statistics_parse_links($body[$key], $nid, $mail);
     }
-  }else{     
+  }
+  else {
     // Replace links   
     $pattern = '/(<a[^>]+href=")([^"]*)/emi';
     $body = preg_replace($pattern, '"\\1"._simplenews_statistics_replace_url("\2", $nid, $mail)', $body);
@@ -225,7 +224,8 @@ function _simplenews_statistics_image_tag(&$body, $nid, $mail) {
       _simplenews_statistics_image_tag($body[$key], $nid, $mail);
       return; // Only once
     }
-  }else{  
+  }
+  else {
     require_once drupal_get_path('module', 'simplenews_statistics') .'/rc4.inc';
       
     // Add hidden image
@@ -360,8 +360,8 @@ function _simplenews_statistics_replace_url($match, $nid, $mail) {
   if (substr($match, 0, 1) == "#")
     return $match;
 
-  require_once drupal_get_path('module', 'simplenews_statistics') .'/rc4.inc';
-  $pars = 'nid='. check_plain($nid) .'&mail='. check_plain($mail) .'&url='. check_url($match);
+  require_once drupal_get_path('module', 'simplenews_statistics') . '/rc4.inc';
+  $pars = 'nid=' . check_plain($nid) .'&mail='. check_plain($mail) .'&url=' . check_url($match);
   $pars = rc4Encrypt(simplenews_private_key(), $pars);
   $pars_hash = md5($pars);
   
@@ -384,7 +384,7 @@ function _simplenews_statistics_decode($values) {
     $pars_hash = _simplenews_statistics_decode_parameter($pars_hash);
   
     if (md5($pars) == $pars_hash) {
-      require_once drupal_get_path('module', 'simplenews_statistics') .'/rc4.inc';
+      require_once drupal_get_path('module', 'simplenews_statistics') . '/rc4.inc';
       $pars = rc4Encrypt(simplenews_private_key(), $pars);
       parse_str($pars, $stat);
     }
@@ -393,7 +393,7 @@ function _simplenews_statistics_decode($values) {
   foreach ($stat as $idx => $stat_param) {
     if ($idx != 'nid' && $idx != 'mail' && $idx != 'url') {
       $idx = str_replace('amp;', '', $idx);
-      $stat['url'] = $stat['url'] .'&'. $idx .'='. $stat_param;
+      $stat['url'] = $stat['url'] . '&' . $idx . '=' . $stat_param;
     }
   }
   
