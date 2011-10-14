@@ -1,8 +1,12 @@
-; $Id:
+;hacked by Fedik http://drupal.org/user/1324974
 name = "Simplenews Statistics"
 description = "Gathers newsletter statistics"
-dependencies[] = shorturl
-dependencies[] = simplenews
-dependencies[] = views
 package = Mail
-core = 6.x
+
+dependencies[] = simplenews
+;dependencies[] = views
+
+
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "simplenews_statistics"
