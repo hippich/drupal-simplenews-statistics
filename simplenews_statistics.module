@@ -210,7 +210,7 @@ function simplenews_statistics_admin_form(&$form_state, $action = 'sent') {
   $form = array();
 
   $header = array(t('Title'), t('Newsletter'), t('Date created'), t('Send'), t('Open rate'), t('CTR'), t('Details'));
-  $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_status >= 1 AND s.s_format = 'html' ORDER BY n.created DESC";
+  $sql = "SELECT n.*, s.s_status, s.s_format FROM {node} n INNER JOIN {simplenews_newsletters} s ON n.nid = s.nid WHERE s.s_format = 'html' ORDER BY n.created DESC";
   $result = db_query(db_rewrite_sql($sql));
 
   $rows = array();
