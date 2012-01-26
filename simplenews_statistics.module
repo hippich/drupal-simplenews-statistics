@@ -145,10 +145,9 @@ function simplenews_statistics_click() {
  */
 function simplenews_statistics_mail_alter(&$message) { 
 	//krumo($message);exit;
-  //if ($message['id'] == 'simplenews_node' && $message['params']['context']['node']->simplenews['s_format']=='html') {
-	if ($message['module'] == 'simplenews' && $message['params']['context']['category']->format =='html') {
-      $nid   = $message['params']['context']['node']->nid;
-      $mail  = $message['params']['context']['account']->mail;
+  if ($message['module'] == 'simplenews' && $message['params']['simplenews_source']->getFormat() =='html') {
+      $nid   = $message['params']['simplenews_source']->getNode()->nid;
+      $mail  = $message['params']['simplenews_source']->getRecipient();
     
       // Need absolute urls
        _simplenews_statistics_absolute($message['body']);
