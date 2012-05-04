@@ -144,8 +144,7 @@ function simplenews_statistics_click() {
  *  @todo: optimise me!
  */
 function simplenews_statistics_mail_alter(&$message) { 
-	//krumo($message);exit;
-  if ($message['module'] == 'simplenews' && $message['params']['simplenews_source']->getFormat() =='html') {
+  if ($message['module'] == 'simplenews' && is_object($message['params']['simplenews_source']) && $message['params']['simplenews_source']->getFormat() =='html') {
       $nid   = $message['params']['simplenews_source']->getNode()->nid;
       $mail  = $message['params']['simplenews_source']->getRecipient();
     
@@ -179,7 +178,6 @@ function simplenews_statistics_mail_alter(&$message) {
         	->condition('nid',$nid,'=')
         	->execute();
       }
-     // krumo($message,$sended,$id);exit;
   }
   
 }
